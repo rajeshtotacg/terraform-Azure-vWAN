@@ -36,10 +36,9 @@ resource "azurerm_firewall_policy_rule_collection_group" "rules" {
     }
   }
 }
-
 resource "azurerm_virtual_hub_route_table" "udr" {
   count          = var.udr_enabled ? 1 : 0
-  name           = "defaultRouteTable"
+  name           = "custom-route-table"
   virtual_hub_id = azurerm_virtual_hub.this.id
-  labels         = ["Default"]
+  labels         = ["Custom"]
 }
