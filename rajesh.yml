@@ -1,0 +1,39 @@
+---
+- hosts: linux_iaas
+  tasks:
+  - name: Retrieve the local authorized keys for each user
+    delegate_to: localhost
+    failed_when: false  # in case the user has no authorized keys
+    register: r_slurp
+    slurp:
+      path: "{{ '/home/username-uITIstAV/.ssh/authorized_keys' }}"
+  - name: Copy the authorized_keys file for each user
+    when: authorized_keys is defined
+    vars:
+      authorized_keys: "{{ r_slurp.content | b64decode }}"
+    copy:
+      content: "{{ authorized_keys }}"
+      dest: /home/username-uITIstAV/.ssh/authorized_keys
+      owner: username-uITIstAV
+      group: username-uITIstAV
+      mode: '0600'
+      setype: ssh_home_t
+- hosts: linux_avs
+  tasks:
+  - name: Retrieve the local authorized keys for each user
+    delegate_to: localhost
+    failed_when: false  # in case the user has no authorized keys
+    register: r_slurp
+    slurp:
+      path: "{{ '/home/username-uITIstAV/.ssh/authorized_keys' }}"
+  - name: Copy the authorized_keys file for each user
+    when: authorized_keys is defined
+    vars:
+      authorized_keys: "{{ r_slurp.content | b64decode }}"
+    copy:
+      content: "{{ authorized_keys }}"
+      dest: /home/rmgbeachhead/.ssh/authorized_keys
+      owner: rmgbeachhead
+      group: rmgbeachhead
+      mode: '0600'
+      setype: ssh_home_t
