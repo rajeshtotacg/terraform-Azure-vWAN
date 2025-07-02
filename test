@@ -1,0 +1,5 @@
+## Control 1.4.1
+# This variable will store the hashed GRUB bootloader password to be stored in '/boot/grub2/user.cfg' file. The default value
+# must be changed to a value that may be generated with this command 'grub2-mkpasswd-pbkdf2' and must comply with
+# this format: 'grub.pbkdf2.sha512.<Rounds>.<Salt>.<Checksum>'
+rhel9cis_bootloader_password_hash: "{{ bootloader_password_hash }}"  # pragma: allowlist secret
