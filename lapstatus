@@ -1,0 +1,21 @@
+---
+- name: Check Chrony Leap status on Linux servers
+  hosts: all
+  become: yes
+  gather_facts: no
+
+  tasks:
+
+    - name: Run 'chronyc tracking' and capture Leap status
+      shell: chronyc tracking | grep 'Leap status'
+      register: leap_status_output
+      changed_when: false
+
+    - name: Show Leap status
+      debug:
+        msg: "{{ inventory_hostname }}: {{ leap_status_output.stdout }}"
+
+    - name: Fail if Leap status is not Normal
+      fail:
+        msg: "Time not synchronized on {{ inventory_hostname }}! Status: {{ leap_status_output.stdout }}"
+      when: "'Leap status     : Normal' not in leap_status_output.stdout"
