@@ -1,0 +1,39 @@
+---
+- name: Check Chrony configuration and Leap status
+  hosts: all
+  become: yes
+  gather_facts: no
+
+  tasks:
+
+    - name: Read server lines from /etc/chrony.conf
+      shell: grep -E '^server\s+' /etc/chrony.conf
+      register: chrony_servers
+      changed_when: false
+      failed_when: chrony_servers.rc != 0 and chrony_servers.rc != 1
+
+    - name: Show NTP server lines
+      debug:
+        msg: "{{ inventory_hostname }}: {{ chrony_servers.stdout_lines | default(['No server entries found']) }}"
+
+    - name: Fail if any server line is missing 'iburst'
+      fail:
+        msg: "Missing 'iburst' on one or more NTP server lines in /etc/chrony.conf on {{ inventory_hostname }}"
+      when: >
+        chrony_servers.stdout_lines is defined and
+        chrony_servers.stdout_lines | select('search', '^server .*') |
+        reject('search', 'iburst') | list | length > 0
+
+    - name: Run 'chronyc tracking' and capture Leap status
+      shell: chronyc tracking | grep 'Leap status'
+      register: leap_status_output
+      changed_when: false
+
+    - name: Show Leap status
+      debug:
+        msg: "{{ inventory_hostname }}: {{ leap_status_output.stdout }}"
+
+    - name: Fail if Leap status is not Normal
+      fail:
+        msg: "Time not synchronized on {{ inventory_hostname }}! Status: {{ leap_status_output.stdout }}"
+      when: "'Leap status     : Normal' not in leap_status_output.stdout"
